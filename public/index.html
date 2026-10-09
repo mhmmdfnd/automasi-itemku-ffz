@@ -17,7 +17,53 @@ async function api(path,opt={}){let h={'Content-Type':'application/json',...(opt
 async function refresh(){try{let h=await fetch('/api/health').then(r=>r.json());$('conn').textContent='● API tersedia';$('cb').textContent=location.origin+'/api/itemku-callback';let s=await api('/status');$('maps').textContent=s.mappings.enabled+' / '+s.mappings.total;$('jobs').textContent=s.jobs.reduce((n,x)=>n+x.total,0);let b=await api('/ffz/account'),d=b.data||b;$('balance').textContent=rp(d.balance);$('state').textContent=h.database_configured&&h.itemku_configured&&h.ffz_configured?'Siap diuji':'Konfigurasi kurang';message('Koneksi API diperiksa.','good')}catch(e){$('conn').textContent='● Perlu konfigurasi';$('state').textContent='Perlu cek';message(e.message,'error')}}
 async function syncIK(){try{$('quick').textContent='Sinkronisasi berjalan...';let r=await api('/sync/itemku',{method:'POST',body:'{}'});$('quick').textContent='Selesai: '+r.synced+' produk Itemku.';message('Katalog Itemku tersinkron.','good');await loadIK();await loadMaps()}catch(e){message(e.message,'error');$('quick').textContent=e.message}}
 async function loadIK(){try{let r=await api('/itemku/products');ikp=r.data||[];$('pinfo').textContent=ikp.length+' produk Itemku';renderProducts(ikp,true);fillSelects()}catch(e){message(e.message,'error')}}
-async function loadFFZ(){try{let r=await api('/ffz/products'),d=r.data||r,c=d.categories||[];ffp=c.flatMap(x=>(x.products||[]).map(p=>({...p,category_name:x.name})));$('pinfo').textContent=c.length+' kategori · '+ffp.length+' produk FFZ';renderProducts(ffp,false);fillSelects();message('Katalog FFZ berhasil diambil.','good')}catch(e){message(e.message,'error')}}
+async function loadFFZ(){
+  try {
+    $('pinfo').textContent = 'Mengambil katalog FFZ...';
+
+    const r = await api('/ffz/products');
+    const d = r.data || r;
+    const categories = Array.isArray(d.categories)
+      ? d.categories
+      : [];
+
+    ffp = categories.flatMap(category => {
+      const items = Array.isArray(category.items)
+        ? category.items
+        : Array.isArray(category.products)
+          ? category.products
+          : [];
+
+      return items.map(product => ({
+        ...product,
+        category_name:
+          category.name || category.code || 'FFZ'
+      }));
+    });
+
+    $('pinfo').textContent =
+      categories.length + ' kategori · ' +
+      ffp.length + ' produk FFZ';
+
+    renderProducts(ffp, false);
+    fillSelects();
+
+    if (ffp.length === 0) {
+      message(
+        'Kategori FFZ terbaca, tetapi produk kosong. Periksa struktur respons API.',
+        'error'
+      );
+      $('pt').innerHTML = '';
+      return;
+    }
+
+    message('Katalog FFZ berhasil ditampilkan.', 'good');
+  } catch (e) {
+    $('pinfo').textContent = 'Gagal memuat katalog FFZ.';
+    message(e.message, 'error');
+  }
+}
+
 function renderProducts(rows,isIK){$('pt').innerHTML='<div class="tablewrap"><table><thead><tr><th>Produk</th><th>Game/Kategori</th><th>ID/SKU</th><th>Harga</th><th>Stok</th></tr></thead><tbody>'+rows.slice(0,500).map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.game_name||p.category_name||p.category)}</td><td>${esc(isIK?p.id:p.sku)}</td><td>${rp(p.price??p.amount)}</td><td>${esc(p.stock??'—')}</td></tr>`).join('')+'</tbody></table></div>'}
 function fillSelects(){$('iksel').innerHTML=ikp.map(p=>`<option value="${p.id}">${esc(p.game_name)} — ${esc(p.name)} (#${p.id})</option>`).join('');$('ffsel').innerHTML=ffp.map(p=>`<option value="${esc(p.sku)}">${esc(p.category_name||p.category)} — ${esc(p.name)} (${esc(p.sku)}) · ${rp(p.price??p.amount)}</option>`).join('')}
 async function loadMaps(){try{let r=await api('/mappings');maps=r.data||[];$('mt').innerHTML='<div class="tablewrap"><table><thead><tr><th>Produk Itemku</th><th>Harga jual</th><th>SKU FFZ</th><th>Modal</th><th>Status</th></tr></thead><tbody>'+maps.map(m=>`<tr><td>${esc(m.itemku_product_name)} (#${m.itemku_product_id})</td><td>${rp(m.itemku_price)}</td><td>${esc(m.supplier_sku||'—')}</td><td>${rp(m.supplier_price)}</td><td><span class="status ${m.enabled?'ok':'warn'}">${m.enabled?'Aktif':'Nonaktif'}</span></td></tr>`).join('')+'</tbody></table></div>';fillSelects()}catch(e){message(e.message,'error')}}
