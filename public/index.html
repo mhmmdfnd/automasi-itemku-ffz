@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Itemku x FFZ Bridge</title>
 <style>
-:root{color-scheme:dark;--bg:#080d18;--panel:#111a2b;--panel2:#172238;--border:#293750;--text:#edf3ff;--muted:#9aabc4;--blue:#4388ff;--green:#22c58b}
+:root{color-scheme:dark;--bg:#080d18;--panel:#111a2b;--panel2:#172238;--border:#293750;--text:#edf3ff;--muted:#9aabc4;--blue:#4388ff}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 Arial,sans-serif}
 button,input,select{font:inherit}
@@ -17,7 +17,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 input,select{width:100%;padding:11px;border:1px solid var(--border);border-radius:9px;background:#0a1221;color:var(--text)}
 label{display:block;color:var(--muted);margin-bottom:7px}
 header{padding:20px;border-bottom:1px solid var(--border);background:#0d1525}
-.header-inner,main{width:min(1250px,100%);margin:auto}
+.header-inner,main{width:min(1350px,100%);margin:auto}
 .brand{font-size:21px;font-weight:bold}
 .brand span{color:var(--blue)}
 .subtitle,.muted,.status{color:var(--muted)}
@@ -37,7 +37,7 @@ h3{font-size:15px;margin:0 0 12px}
 .notice{background:#17253d;border:1px solid #31496d;border-radius:9px;padding:12px;margin:12px 0;color:#d6e5ff}
 .warning{background:#34251a;border-color:#79502c;color:#ffe0b7}
 .table-wrap{overflow:auto;max-height:530px;border:1px solid var(--border);border-radius:9px}
-table{border-collapse:collapse;width:100%;min-width:530px}
+table{border-collapse:collapse;width:100%;min-width:650px}
 th,td{padding:11px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top;overflow-wrap:anywhere}
 th{position:sticky;top:0;background:#172238;z-index:1;color:#c8d7ef}
 .empty{padding:20px;color:var(--muted);text-align:center}
@@ -49,7 +49,8 @@ th{position:sticky;top:0;background:#172238;z-index:1;color:#c8d7ef}
 .toast.error{background:#48232d;border-color:#8c3d4a}
 .toast.good{background:#124333;border-color:#218c66}
 footer{color:var(--muted);padding:20px 0;font-size:12px}
-@media(max-width:760px){header{padding:16px}main{padding:0 13px 25px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.columns{grid-template-columns:1fr}nav{padding:12px 0}nav button{flex:1 1 28%}}
+@media(max-width:850px){.columns{grid-template-columns:1fr}}
+@media(max-width:760px){header{padding:16px}main{padding:0 13px 25px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}nav{padding:12px 0}nav button{flex:1 1 28%}}
 </style>
 </head>
 <body>
@@ -88,12 +89,12 @@ footer{color:var(--muted);padding:20px 0;font-size:12px}
       <button id="goMapping">Buka mapping</button>
     </div>
   </div>
-  <div class="notice warning">Mapping tidak otomatis diaktifkan. Pastikan SKU dan nominal benar sebelum mengaktifkannya melalui sistem yang berwenang.</div>
+  <div class="notice warning">Periksa game, server, dan nominal sebelum menggunakan mapping. Mapping tidak otomatis diaktifkan.</div>
 </section>
 
 <section id="products" class="page">
   <h2>Katalog Produk</h2>
-  <div class="muted">Katalog Itemku difilter untuk jenis Top Up. Katalog FFZ ditampilkan terpisah.</div>
+  <div class="muted">Katalog Itemku difilter untuk jenis Top Up. Jenis game ditampilkan terpisah dari nama produk.</div>
   <div class="columns">
     <div class="panel">
       <h3>Itemku — Top Up saja</h3>
@@ -102,29 +103,40 @@ footer{color:var(--muted);padding:20px 0;font-size:12px}
         <button id="loadIKBtn">Tampilkan produk Itemku</button>
       </div>
       <div id="ikInfo" class="status">Katalog belum dimuat.</div>
-      <div class="field"><input id="ikSearch" placeholder="Cari produk Top Up..."></div>
+      <div class="field"><input id="ikSearch" placeholder="Cari game atau produk Top Up..."></div>
       <div class="table-wrap">
-        <table><thead><tr><th>Produk</th><th>Jenis</th><th>ID</th></tr></thead><tbody id="ikTable"><tr><td colspan="3" class="empty">Belum ada data.</td></tr></tbody></table>
+        <table>
+          <thead><tr><th>Game</th><th>Produk</th><th>Jenis</th><th>ID</th></tr></thead>
+          <tbody id="ikTable"><tr><td colspan="4" class="empty">Belum ada data.</td></tr></tbody>
+        </table>
       </div>
     </div>
+
     <div class="panel">
       <h3>Katalog FFZ</h3>
       <div class="actions"><button class="primary" id="loadFFZBtn">Tampilkan produk FFZ</button></div>
       <div id="ffInfo" class="status">Katalog belum dimuat.</div>
-      <div class="field"><input id="ffSearch" placeholder="Cari nama atau SKU FFZ..."></div>
+      <div class="field"><input id="ffSearch" placeholder="Cari game, nama, atau SKU FFZ..."></div>
       <div class="table-wrap">
-        <table><thead><tr><th>Produk</th><th>SKU</th><th>Harga</th></tr></thead><tbody id="ffTable"><tr><td colspan="3" class="empty">Belum ada data.</td></tr></tbody></table>
+        <table>
+          <thead><tr><th>Game</th><th>Produk</th><th>SKU</th><th>Harga</th></tr></thead>
+          <tbody id="ffTable"><tr><td colspan="4" class="empty">Belum ada data.</td></tr></tbody>
+        </table>
       </div>
     </div>
   </div>
-  <div class="notice">Filter menggunakan jenis produk dari API Itemku. Produk yang tidak teridentifikasi sebagai Top Up tidak akan ditampilkan.</div>
+  <div class="notice">Filter Top Up menggunakan jenis produk dan kategori yang tersedia dari API. Produk yang tidak teridentifikasi sebagai Top Up tidak ditampilkan.</div>
 </section>
 
 <section id="mapping" class="page">
   <h2>Mapping Produk</h2>
-  <div class="muted">Pilih produk Top Up Itemku dan SKU supplier FFZ.</div>
-  <div class="notice warning">Periksa game, server, dan nominal dengan teliti. Menyimpan mapping tidak mengaktifkan pemrosesan pesanan.</div>
+  <div class="muted">Pilih game dan produk Itemku Top Up, lalu pasangkan dengan SKU FFZ yang sesuai.</div>
+  <div class="notice warning">Pastikan game, server, dan nominal cocok. Menyimpan mapping tidak mengaktifkannya.</div>
   <div class="panel">
+    <div class="field">
+      <label for="gameFilter">Filter jenis game</label>
+      <select id="gameFilter"><option value="">Semua game</option></select>
+    </div>
     <div class="field">
       <label for="itemkuSelect">Produk Itemku Top Up</label>
       <select id="itemkuSelect"><option value="">Memuat katalog...</option></select>
@@ -133,6 +145,7 @@ footer{color:var(--muted);padding:20px 0;font-size:12px}
       <label for="ffzSelect">Produk FFZ / SKU</label>
       <select id="ffzSelect"><option value="">Memuat katalog...</option></select>
     </div>
+    <div id="selectedInfo" class="notice">Pilih produk untuk melihat informasi game dan nominal.</div>
     <div class="actions">
       <button class="primary" id="saveMapBtn">Simpan mapping</button>
       <button id="reloadMapsBtn">Muat ulang mapping</button>
@@ -144,7 +157,10 @@ footer{color:var(--muted);padding:20px 0;font-size:12px}
     <h3>Mapping tersimpan</h3>
     <div id="mapsInfo" class="status">Belum dimuat.</div>
     <div class="table-wrap">
-      <table><thead><tr><th>Produk Itemku</th><th>SKU FFZ</th><th>Status</th></tr></thead><tbody id="mapsTable"><tr><td colspan="3" class="empty">Belum ada data.</td></tr></tbody></table>
+      <table>
+        <thead><tr><th>Game</th><th>Produk Itemku</th><th>SKU FFZ</th><th>Status</th></tr></thead>
+        <tbody id="mapsTable"><tr><td colspan="4" class="empty">Belum ada data.</td></tr></tbody>
+      </table>
     </div>
   </div>
 </section>
@@ -162,7 +178,11 @@ footer{color:var(--muted);padding:20px 0;font-size:12px}
 <section id="logs" class="page">
   <h2>Log aktivitas</h2>
   <div class="actions"><button id="clearLogsBtn">Bersihkan log</button></div>
-  <div class="panel"><div class="table-wrap"><table><thead><tr><th>Waktu</th><th>Aktivitas</th></tr></thead><tbody id="logsTable"></tbody></table></div></div>
+  <div class="panel">
+    <div class="table-wrap">
+      <table><thead><tr><th>Waktu</th><th>Aktivitas</th></tr></thead><tbody id="logsTable"></tbody></table>
+    </div>
+  </div>
 </section>
 
 <section id="settings" class="page">
@@ -192,9 +212,9 @@ let ikLoaded = false, ffLoaded = false;
 let ikPromise = null, ffPromise = null, mapPromise = null;
 let toastTimer;
 
-function log(text) {
+function addLog(text) {
   logs.unshift({time:new Date().toLocaleString('id-ID'),text});
-  logs = logs.slice(0,100);
+  logs=logs.slice(0,100);
   renderLogs();
 }
 
@@ -204,7 +224,7 @@ function message(text,type='') {
   el.className='toast show '+type;
   clearTimeout(toastTimer);
   toastTimer=setTimeout(()=>el.className='toast',5000);
-  log(String(text||''));
+  addLog(String(text||''));
 }
 
 function renderLogs() {
@@ -256,76 +276,64 @@ async function api(path,options={},retried=false) {
 function showPage(name) {
   document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.id===name));
   document.querySelectorAll('#nav button').forEach(el=>el.classList.toggle('active',el.dataset.page===name));
-
-  if(name==='products') {
-    renderIK();renderFFZ();
-  }
-  if(name==='mapping') {
+  if(name==='products'){renderIK();renderFFZ();}
+  if(name==='mapping'){
     $('mapInfo').textContent='Memuat katalog Top Up dan FFZ...';
     Promise.all([ensureCatalogs(),loadMaps()])
       .then(()=>{
         fillSelects();
         $('mapInfo').textContent=`${ikp.length} produk Top Up Itemku dan ${ffp.length} produk FFZ tersedia.`;
       })
-      .catch(e=>{
-        $('mapInfo').textContent=e.message;
-        message(e.message,'error');
-      });
+      .catch(e=>{$('mapInfo').textContent=e.message;message(e.message,'error');});
   }
   if(name==='orders') refreshStatus();
 }
-
 document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
 $('goProducts').onclick=()=>showPage('products');
 $('goMapping').onclick=()=>showPage('mapping');
 
 function categoryValue(value) {
-  if(value&&typeof value==='object') {
-    return value.name||value.title||value.label||value.slug||'';
-  }
+  if(value&&typeof value==='object') return value.name||value.title||value.label||value.slug||'';
   return value==null?'':String(value);
 }
 
 function getItemkuCategory(p) {
   return [
-    p.item_type_name,
-    p.category_name,
-    p.categoryName,
-    p.category,
-    p.product_category,
-    p.productCategory,
-    p.type
+    p.item_type_name,p.category_name,p.categoryName,p.category,
+    p.product_category,p.productCategory,p.type
   ].map(categoryValue).filter(Boolean).join(' ').replace(/[_-]+/g,' ').trim();
 }
 
 function isTopUp(p) {
-  // Prioritas utama: jenis produk eksplisit dari API Itemku.
   const type=String(p.item_type_name||'').trim().replace(/[_-]+/g,' ');
   if(type) return /\btop\s*up\b/i.test(type);
-
-  // Fallback untuk respons yang tidak menyediakan item_type_name.
   const category=[
-    p.category_name,p.categoryName,p.category,
-    p.product_category,p.productCategory,p.type
+    p.category_name,p.categoryName,p.category,p.product_category,
+    p.productCategory,p.type
   ].map(categoryValue).filter(Boolean).join(' ').replace(/[_-]+/g,' ');
-
   return /\btop\s*up\b/i.test(category);
 }
 
 function itemkuId(p) {
   return p.id??p.product_id??p.productId??p.itemku_product_id??'';
 }
-
 function itemkuName(p) {
   return p.name||p.title||p.product_name||p.productName||('Produk '+itemkuId(p));
 }
-
+function itemkuGame(p) {
+  return p.game_name||p.gameName||p.game||p.game_title||p.category_game||'Game tidak diketahui';
+}
 function ffzSku(p) {
   return p.sku||p.code||p.product_sku||p.product_code||'';
 }
-
 function ffzName(p) {
   return p.name||p.title||p.product_name||ffzSku(p)||'Produk FFZ';
+}
+function ffzGame(p) {
+  return p.category_name||p.game_name||p.gameName||p.game||p.category||'Game tidak diketahui';
+}
+function normalizeGame(value) {
+  return String(value||'').trim().toLowerCase();
 }
 
 async function syncIK() {
@@ -354,15 +362,13 @@ async function loadIK(options={}) {
       ikLoaded=true;
       $('ikInfo').textContent=`Menampilkan ${ikp.length} produk Top Up dari ${all.length} produk Itemku.`;
       renderIK();fillSelects();
-      if(!options.quiet) message(`Katalog Itemku dimuat: ${ikp.length} produk Top Up.`, 'good');
+      if(!options.quiet) message('Katalog Itemku dimuat: '+ikp.length+' produk Top Up.','good');
       return ikp;
     } catch(e) {
       ikLoaded=false;
       $('ikInfo').textContent='Gagal memuat Itemku: '+e.message;
       throw e;
-    } finally {
-      ikPromise=null;
-    }
+    } finally {ikPromise=null;}
   })();
   return ikPromise;
 }
@@ -376,11 +382,10 @@ async function loadFFZ(options={}) {
       const root=response.data||response;
       const categories=Array.isArray(root.categories)?root.categories:[];
       ffp=categories.flatMap(cat=>{
-        const items=Array.isArray(cat.items)?cat.items:
-          Array.isArray(cat.products)?cat.products:[];
+        const items=Array.isArray(cat.items)?cat.items:Array.isArray(cat.products)?cat.products:[];
         const c=cat.category;
-        const categoryName=(c&&typeof c==='object'?c.name:c)||cat.name||cat.category_name||'';
-        return items.map(p=>({...p,sku:ffzSku(p),category_name:p.category_name||categoryName}));
+        const catName=(c&&typeof c==='object'?c.name:c)||cat.name||cat.category_name||'';
+        return items.map(p=>({...p,sku:ffzSku(p),category_name:p.category_name||catName}));
       });
       ffLoaded=true;
       $('ffInfo').textContent=`${categories.length} kategori · ${ffp.length} produk FFZ.`;
@@ -391,9 +396,7 @@ async function loadFFZ(options={}) {
       ffLoaded=false;
       $('ffInfo').textContent='Gagal memuat FFZ: '+e.message;
       throw e;
-    } finally {
-      ffPromise=null;
-    }
+    } finally {ffPromise=null;}
   })();
   return ffPromise;
 }
@@ -409,16 +412,20 @@ async function ensureCatalogs() {
 function renderIK() {
   const body=$('ikTable');
   const q=$('ikSearch').value.trim().toLowerCase();
-  const rows=ikp.filter(p=>(itemkuName(p)+' '+getItemkuCategory(p)+' '+itemkuId(p)).toLowerCase().includes(q));
+  const rows=ikp.filter(p=>
+    (itemkuGame(p)+' '+itemkuName(p)+' '+getItemkuCategory(p)+' '+itemkuId(p)).toLowerCase().includes(q)
+  );
   body.replaceChildren();
   if(!rows.length) {
-    body.innerHTML='<tr><td colspan="3" class="empty">Tidak ada produk Top Up yang cocok.</td></tr>';
+    body.innerHTML='<tr><td colspan="4" class="empty">Tidak ada produk Top Up yang cocok.</td></tr>';
     return;
   }
   rows.forEach(p=>{
     const tr=document.createElement('tr');
-    [itemkuName(p),getItemkuCategory(p)||'Top Up',itemkuId(p)].forEach(value=>{
-      const td=document.createElement('td');td.textContent=String(value);tr.appendChild(td);
+    [itemkuGame(p),itemkuName(p),getItemkuCategory(p)||'Top Up',itemkuId(p)].forEach(value=>{
+      const td=document.createElement('td');
+      td.textContent=String(value);
+      tr.appendChild(td);
     });
     body.appendChild(tr);
   });
@@ -427,54 +434,93 @@ function renderIK() {
 function renderFFZ() {
   const body=$('ffTable');
   const q=$('ffSearch').value.trim().toLowerCase();
-  const rows=ffp.filter(p=>(ffzName(p)+' '+ffzSku(p)+' '+p.category_name+' '+(p.price??p.amount??'')).toLowerCase().includes(q));
+  const rows=ffp.filter(p=>
+    (ffzGame(p)+' '+ffzName(p)+' '+ffzSku(p)+' '+(p.price??p.amount??'')).toLowerCase().includes(q)
+  );
   body.replaceChildren();
   if(!rows.length) {
-    body.innerHTML='<tr><td colspan="3" class="empty">Tidak ada produk FFZ yang cocok.</td></tr>';
+    body.innerHTML='<tr><td colspan="4" class="empty">Tidak ada produk FFZ yang cocok.</td></tr>';
     return;
   }
   rows.forEach(p=>{
     const tr=document.createElement('tr');
-    const name=document.createElement('td'),sku=document.createElement('td'),price=document.createElement('td');
-    name.textContent=ffzName(p)+(p.category_name?' · '+p.category_name:'');
+    const game=document.createElement('td'),name=document.createElement('td');
+    const sku=document.createElement('td'),price=document.createElement('td');
+    game.textContent=ffzGame(p);
+    name.textContent=ffzName(p);
     sku.textContent=ffzSku(p)||'-';
     price.textContent=p.price??p.amount??'-';
-    tr.append(name,sku,price);body.appendChild(tr);
+    tr.append(game,name,sku,price);
+    body.appendChild(tr);
   });
 }
 
 function fillSelects() {
+  const gameSelect=$('gameFilter');
+  const oldGame=gameSelect.value;
+  const gameNames=[...new Set(ikp.map(itemkuGame).filter(g=>g&&g!=='Game tidak diketahui'))].sort((a,b)=>a.localeCompare(b));
+  gameSelect.replaceChildren();
+  const allGame=document.createElement('option');
+  allGame.value='';allGame.textContent='Semua game';
+  gameSelect.appendChild(allGame);
+  gameNames.forEach(game=>{
+    const option=document.createElement('option');
+    option.value=game;option.textContent=game;
+    gameSelect.appendChild(option);
+  });
+  if([...gameSelect.options].some(o=>o.value===oldGame)) gameSelect.value=oldGame;
+
   const a=$('itemkuSelect'),b=$('ffzSelect');
   const oldA=a.value,oldB=b.value;
+  const selectedGame=gameSelect.value;
+
   a.replaceChildren();
   const firstA=document.createElement('option');
-  firstA.value='';firstA.textContent=ikLoaded?'Pilih produk Itemku Top Up...':'Katalog Itemku belum dimuat';
+  firstA.value='';
+  firstA.textContent=ikLoaded?'Pilih produk Itemku Top Up...':'Katalog Itemku belum dimuat';
   a.appendChild(firstA);
-  ikp.forEach(p=>{
+
+  ikp.filter(p=>!selectedGame||itemkuGame(p)===selectedGame).forEach(p=>{
     const id=itemkuId(p);
-    if(id===''||id==null) return;
-    const o=document.createElement('option');
-    o.value=String(id);o.textContent=`${itemkuName(p)} [ID ${id}]`;a.appendChild(o);
+    if(id===''||id==null)return;
+    const option=document.createElement('option');
+    option.value=String(id);
+    option.textContent=`${itemkuGame(p)} | ${itemkuName(p)} [ID ${id}]`;
+    a.appendChild(option);
   });
 
   b.replaceChildren();
   const firstB=document.createElement('option');
-  firstB.value='';firstB.textContent=ffLoaded?'Pilih produk FFZ / SKU...':'Katalog FFZ belum dimuat';
+  firstB.value='';
+  firstB.textContent=ffLoaded?'Pilih produk FFZ / SKU...':'Katalog FFZ belum dimuat';
   b.appendChild(firstB);
+
   ffp.forEach(p=>{
     const sku=ffzSku(p);
-    if(!sku) return;
-    const o=document.createElement('option');
-    o.value=String(sku);
-    o.textContent=`${p.category_name?p.category_name+' · ':''}${ffzName(p)} [${sku}]`;
-    b.appendChild(o);
+    if(!sku)return;
+    const option=document.createElement('option');
+    option.value=String(sku);
+    option.textContent=`${ffzGame(p)} | ${ffzName(p)} [${sku}]`;
+    b.appendChild(option);
   });
-  if([...a.options].some(o=>o.value===oldA)) a.value=oldA;
-  if([...b.options].some(o=>o.value===oldB)) b.value=oldB;
+
+  if([...a.options].some(o=>o.value===oldA))a.value=oldA;
+  if([...b.options].some(o=>o.value===oldB))b.value=oldB;
+  updateSelectedInfo();
+}
+
+function updateSelectedInfo() {
+  const item=ikp.find(p=>String(itemkuId(p))===$('itemkuSelect').value);
+  const supplier=ffp.find(p=>String(ffzSku(p))===$('ffzSelect').value);
+  const lines=[];
+  if(item) lines.push('Itemku: '+itemkuGame(item)+' | '+itemkuName(item)+' | Jenis: '+getItemkuCategory(item));
+  if(supplier) lines.push('FFZ: '+ffzGame(supplier)+' | '+ffzName(supplier)+' | SKU: '+ffzSku(supplier));
+  $('selectedInfo').textContent=lines.length?lines.join('\n'):'Pilih produk untuk melihat informasi game dan nominal.';
+  $('selectedInfo').style.whiteSpace='pre-line';
 }
 
 async function loadMaps() {
-  if(mapPromise) return mapPromise;
+  if(mapPromise)return mapPromise;
   mapPromise=(async()=>{
     try {
       $('mapsInfo').textContent='Memuat mapping...';
@@ -486,34 +532,39 @@ async function loadMaps() {
     } catch(e) {
       $('mapsInfo').textContent='Gagal memuat mapping: '+e.message;
       throw e;
-    } finally {
-      mapPromise=null;
-    }
+    } finally {mapPromise=null;}
   })();
   return mapPromise;
 }
 
 function renderMaps() {
-  const body=$('mapsTable');body.replaceChildren();
+  const body=$('mapsTable');
+  body.replaceChildren();
   if(!maps.length) {
-    body.innerHTML='<tr><td colspan="3" class="empty">Belum ada mapping tersimpan.</td></tr>';
+    body.innerHTML='<tr><td colspan="4" class="empty">Belum ada mapping tersimpan.</td></tr>';
     return;
   }
   maps.forEach(m=>{
     const tr=document.createElement('tr');
     const id=m.itemku_product_id??m.product_id??'-';
-    const product=ikp.find(p=>String(itemkuId(p))===String(id));
-    const name=document.createElement('td');
+    const item=ikp.find(p=>String(itemkuId(p))===String(id));
+    const supplier=ffp.find(p=>String(ffzSku(p))===String(m.supplier_sku||m.sku||''));
+    const game=document.createElement('td');
+    const product=document.createElement('td');
     const sku=document.createElement('td');
     const status=document.createElement('td');
-    name.textContent=product?`${itemkuName(product)} [${id}]`:`${m.itemku_product_name||m.product_name||'Itemku'} [${id}]`;
-    sku.textContent=m.supplier_sku||m.sku||'-';
+
+    game.textContent=item?itemkuGame(item):(m.game_name||m.category_name||'-');
+    product.textContent=item?`${itemkuName(item)} [${id}]`:`${m.itemku_product_name||m.product_name||'Itemku'} [${id}]`;
+    sku.textContent=supplier?`${ffzGame(supplier)} | ${m.supplier_sku||m.sku||'-'}`:(m.supplier_sku||m.sku||'-');
+
     const active=m.enabled===true||m.enabled===1;
     const pill=document.createElement('span');
     pill.className='pill '+(active?'good':'off');
     pill.textContent=active?'Aktif':'Nonaktif';
     status.appendChild(pill);
-    tr.append(name,sku,status);body.appendChild(tr);
+    tr.append(game,product,sku,status);
+    body.appendChild(tr);
   });
 }
 
@@ -533,7 +584,7 @@ async function saveMap() {
     message('SKU tidak ditemukan dalam katalog FFZ.','error');
     return;
   }
-  if(!confirm('Simpan mapping ini?\n\nItemku: '+itemkuName(item)+'\nFFZ: '+ffzName(supplier)+'\nSKU: '+sku+'\n\nMapping tidak diaktifkan otomatis.')) return;
+  if(!confirm('Simpan mapping ini?\n\nGame Itemku: '+itemkuGame(item)+'\nProduk Itemku: '+itemkuName(item)+'\nGame FFZ: '+ffzGame(supplier)+'\nSKU FFZ: '+sku+'\n\nMapping tidak diaktifkan otomatis.'))return;
 
   $('saveMapBtn').disabled=true;
   try {
@@ -553,8 +604,7 @@ async function saveMap() {
 async function refreshStatus() {
   try {
     const [h,s]=await Promise.all([api('/health'),api('/status')]);
-    const health=h.data||h;
-    const data=s.data||s;
+    const health=h.data||h,data=s.data||s;
     $('healthStat').textContent='OK';
     $('mappingStat').textContent=data.mappings?.total??data.mapping_count??data.total_mappings??'-';
     $('enabledStat').textContent=data.mappings?.enabled??data.enabled_mappings??'-';
@@ -573,28 +623,36 @@ $('loadIKBtn').onclick=()=>loadIK().catch(e=>message(e.message,'error'));
 $('loadFFZBtn').onclick=()=>loadFFZ().catch(e=>message(e.message,'error'));
 $('saveMapBtn').onclick=saveMap;
 $('reloadMapsBtn').onclick=()=>loadMaps().then(()=>message('Mapping diperbarui.','good')).catch(e=>message(e.message,'error'));
+
 $('reloadCatalogsBtn').onclick=async()=>{
   try {
     ikLoaded=false;ffLoaded=false;
     await Promise.all([loadIK(),loadFFZ()]);
     fillSelects();
     message('Katalog berhasil dimuat ulang.','good');
-  } catch(e) { message(e.message,'error'); }
+  } catch(e) {message(e.message,'error');}
 };
+
+$('gameFilter').addEventListener('change',fillSelects);
+$('itemkuSelect').addEventListener('change',updateSelectedInfo);
+$('ffzSelect').addEventListener('change',updateSelectedInfo);
 $('refreshBtn').onclick=refreshStatus;
 $('ordersRefreshBtn').onclick=refreshStatus;
 $('settingsRefreshBtn').onclick=refreshStatus;
 $('ikSearch').oninput=renderIK;
 $('ffSearch').oninput=renderFFZ;
 $('clearLogsBtn').onclick=()=>{logs=[];renderLogs();};
+
 $('forgetSecretBtn').onclick=()=>{
   if(confirm('Hapus APP_SECRET dari sesi browser?')) {
-    sessionStorage.removeItem('bridgeSecret');secret='';
+    sessionStorage.removeItem('bridgeSecret');
+    secret='';
     message('Secret sesi dihapus.','good');
   }
 };
 
-// Hanya membaca status. Tidak menjalankan polling atau pemrosesan order.
+// Hanya membaca status saat halaman dibuka.
+// Tidak menjalankan polling atau pemrosesan pesanan otomatis.
 refreshStatus();
 </script>
 </body>
