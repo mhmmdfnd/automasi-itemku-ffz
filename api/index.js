@@ -20,6 +20,27 @@ if(req.method==="POST"&&p==="/itemku-callback"){let o=req.body?.data?.[0]||req.b
 if(req.method==="POST"&&p==="/ffz-callback"){await log("info","ffz_callback","Callback FFZ diterima; cron akan verifikasi status.",{});return send(res,200,{success:true})}
 if(req.method==="GET"&&p==="/cron"){let given=(req.headers.authorization||"").replace(/^Bearer\s+/i,"")||new URL(req.url,"https://local").searchParams.get("secret")||"",expected=process.env.CRON_SECRET||process.env.APP_SECRET;if(!expected||!equal(given,expected))return send(res,401,{success:false,message:"Unauthorized cron"});let r=await worker();return send(res,200,{success:true,processed:r.length,results:r})}
 if(!auth(req))return send(res,401,{success:false,message:"Masukkan APP_SECRET melalui prompt dashboard."});
+  
+if (req.method === "GET" && p === "/check-ip") {
+  const r = await fetch("https://api.ipify.org?format=json", {
+    cache: "no-store"
+  });
+
+  if (!r.ok) {
+    return send(res, 502, {
+      success: false,
+      message: "Gagal memeriksa IP keluar"
+    });
+  }
+
+  const data = await r.json();
+
+  return send(res, 200, {
+    success: true,
+    outbound_ip: data.ip,
+    note: "Konfirmasikan IP ini dengan pihak FFZ"
+  });
+}
 if(req.method==="GET"&&p==="/status"){let a=await db().query("SELECT COUNT(*)::int total,COUNT(*) FILTER(WHERE enabled)::int enabled FROM product_mappings"),b=await db().query("SELECT state,COUNT(*)::int total FROM order_jobs GROUP BY state");return send(res,200,{success:true,mappings:a.rows[0],jobs:b.rows})}
 if(req.method==="GET"&&p==="/itemku/products")return send(res,200,{success:true,data:await products()});
 if(req.method==="POST"&&p==="/sync/itemku"){let rows=await products();for(let x of rows)await db().query("INSERT INTO product_mappings(itemku_product_id,itemku_product_name,itemku_game_name,itemku_price) VALUES($1,$2,$3,$4) ON CONFLICT(itemku_product_id) DO UPDATE SET itemku_product_name=EXCLUDED.itemku_product_name,itemku_game_name=EXCLUDED.itemku_game_name,itemku_price=EXCLUDED.itemku_price,updated_at=NOW()",[x.id,x.name,x.game_name||null,Number(x.price||0)]);await log("info","sync_itemku",`Sinkron ${rows.length} produk`,{});return send(res,200,{success:true,synced:rows.length})}
