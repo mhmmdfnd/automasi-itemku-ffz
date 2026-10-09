@@ -44,13 +44,82 @@ th{position:sticky;top:0;background:#172238;z-index:1;color:#c8d7ef}
 .pill{display:inline-block;border-radius:30px;padding:3px 8px;background:#203149;color:#d9e8ff;font-size:12px}
 .pill.good{background:#124333;color:#9cf2cf}
 .pill.off{background:#48232d;color:#ffb8c2}
-.toast{position:fixed;right:18px;bottom:18px;max-width:min(420px,calc(100% - 36px));padding:13px 16px;border-radius:10px;background:#1d304b;border:1px solid #405979;display:none;z-index:10;overflow-wrap:anywhere}
-.toast.show{display:block}
-.toast.error{background:#48232d;border-color:#8c3d4a}
-.toast.good{background:#124333;border-color:#218c66}
-footer{color:var(--muted);padding:20px 0;font-size:12px}
-@media(max-width:850px){.columns{grid-template-columns:1fr}}
-@media(max-width:760px){header{padding:16px}main{padding:0 13px 25px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}nav{padding:12px 0}nav button{flex:1 1 28%}}
+.toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: min(410px, calc(100% - 32px));
+  max-width: 410px;
+  padding: 0;
+  border: 1px solid #34445e;
+  border-radius: 14px;
+  background: #111b2c;
+  color: #edf3ff;
+  box-shadow: 0 16px 45px rgba(0,0,0,.45);
+  display: none;
+  z-index: 9999;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .22s ease, transform .22s ease;
+}
+.toast.show {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+.toast-inner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 16px;
+}
+.toast-icon {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: bold;
+  background: #26364e;
+}
+.toast-content {
+  min-width: 0;
+  flex: 1;
+}
+.toast-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+.toast-message {
+  color: #c1cde0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.toast-close {
+  background: transparent;
+  border: 0;
+  padding: 0 4px;
+  color: #a9b8ce;
+  font-size: 20px;
+  line-height: 1;
+}
+.toast.good { border-color: #237a5c; }
+.toast.good .toast-icon { background: #124333; color: #9cf2cf; }
+.toast.error { border-color: #8c3d4a; }
+.toast.error .toast-icon { background: #48232d; color: #ffb8c2; }
+.toast.info .toast-icon { background: #203c68; color: #b9d5ff; }
+
+@media(max-width:600px) {
+  .toast {
+    right: 12px;
+    bottom: 12px;
+    width: calc(100% - 24px);
+  }
+}
 </style>
 </head>
 <body>
@@ -218,14 +287,61 @@ function addLog(text) {
   renderLogs();
 }
 
-function message(text,type='') {
-  const el=$('toast');
-  el.textContent=String(text||'');
-  el.className='toast show '+type;
+function message(text, type = "") {
+  const el = $("toast");
+  const safeType = type === "good" ? "good" : type === "error" ? "error" : "info";
+  const title = safeType === "good"
+    ? "Berhasil"
+    : safeType === "error"
+      ? "Terjadi Kesalahan"
+      : "Informasi";
+  const icon = safeType === "good" ? "✓" : safeType === "error" ? "!" : "i";
+
+  el.className = "toast " + safeType;
+  el.replaceChildren();
+
+  const inner = document.createElement("div");
+  inner.className = "toast-inner";
+
+  const iconEl = document.createElement("div");
+  iconEl.className = "toast-icon";
+  iconEl.textContent = icon;
+
+  const content = document.createElement("div");
+  content.className = "toast-content";
+
+  const titleEl = document.createElement("div");
+  titleEl.className = "toast-title";
+  titleEl.textContent = title;
+
+  const messageEl = document.createElement("div");
+  messageEl.className = "toast-message";
+  messageEl.textContent = String(text || "");
+
+  const close = document.createElement("button");
+  close.className = "toast-close";
+  close.type = "button";
+  close.setAttribute("aria-label", "Tutup notifikasi");
+  close.textContent = "×";
+  close.onclick = () => {
+    clearTimeout(toastTimer);
+    el.classList.remove("show");
+  };
+
+  content.append(titleEl, messageEl);
+  inner.append(iconEl, content, close);
+  el.appendChild(inner);
+
+  requestAnimationFrame(() => el.classList.add("show"));
+
   clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>el.className='toast',5000);
-  addLog(String(text||''));
+  toastTimer = setTimeout(() => {
+    el.classList.remove("show");
+  }, 4500);
+
+  addLog(String(text || ""));
 }
+
 
 function renderLogs() {
   const body=$('logsTable');
@@ -642,35 +758,55 @@ async function loadMaps() {
 }
 
 function renderMaps() {
-  const body=$('mapsTable');
+  const body = $("mapsTable");
   body.replaceChildren();
-  if(!maps.length) {
-    body.innerHTML='<tr><td colspan="4" class="empty">Belum ada mapping tersimpan.</td></tr>';
+
+  const visibleMaps = maps.filter(m => {
+    const id = m.itemku_product_id ?? m.product_id ?? "";
+    const product = ikp.find(p => String(itemkuId(p)) === String(id));
+
+    // Mapping tanpa produk yang cocok dengan katalog Top Up tidak ditampilkan.
+    return Boolean(product && isTopUp(product));
+  });
+
+  if (!visibleMaps.length) {
+    body.innerHTML = '<tr><td colspan="4" class="empty">Belum ada mapping untuk produk Top Up yang teridentifikasi.</td></tr>';
     return;
   }
-  maps.forEach(m=>{
-    const tr=document.createElement('tr');
-    const id=m.itemku_product_id??m.product_id??'-';
-    const item=ikp.find(p=>String(itemkuId(p))===String(id));
-    const supplier=ffp.find(p=>String(ffzSku(p))===String(m.supplier_sku||m.sku||''));
-    const game=document.createElement('td');
-    const product=document.createElement('td');
-    const sku=document.createElement('td');
-    const status=document.createElement('td');
 
-    game.textContent=item?itemkuGame(item):(m.game_name||m.category_name||'-');
-    product.textContent=item?`${itemkuName(item)} [${id}]`:`${m.itemku_product_name||m.product_name||'Itemku'} [${id}]`;
-    sku.textContent=supplier?`${ffzGame(supplier)} | ${m.supplier_sku||m.sku||'-'}`:(m.supplier_sku||m.sku||'-');
+  visibleMaps.forEach(m => {
+    const tr = document.createElement("tr");
+    const id = m.itemku_product_id ?? m.product_id ?? "-";
+    const item = ikp.find(p => String(itemkuId(p)) === String(id));
+    const supplier = ffp.find(p =>
+      String(ffzSku(p)) === String(m.supplier_sku || m.sku || "")
+    );
 
-    const active=m.enabled===true||m.enabled===1;
-    const pill=document.createElement('span');
-    pill.className='pill '+(active?'good':'off');
-    pill.textContent=active?'Aktif':'Nonaktif';
+    const game = document.createElement("td");
+    const product = document.createElement("td");
+    const sku = document.createElement("td");
+    const status = document.createElement("td");
+
+    game.textContent = itemkuGame(item);
+    product.textContent = `${itemkuName(item)} [${id}]`;
+    sku.textContent = supplier
+      ? `${ffzGame(supplier)} | ${m.supplier_sku || m.sku || "-"}`
+      : (m.supplier_sku || m.sku || "-");
+
+    const active = m.enabled === true || m.enabled === 1;
+    const pill = document.createElement("span");
+    pill.className = "pill " + (active ? "good" : "off");
+    pill.textContent = active ? "Aktif" : "Nonaktif";
     status.appendChild(pill);
-    tr.append(game,product,sku,status);
+
+    tr.append(game, product, sku, status);
     body.appendChild(tr);
   });
+
+  $("mapsInfo").textContent =
+    `${visibleMaps.length} mapping Top Up ditampilkan dari ${maps.length} mapping tersimpan.`;
 }
+
 
 async function saveMap() {
   const id=$('itemkuSelect').value,sku=$('ffzSelect').value;
