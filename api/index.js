@@ -794,23 +794,45 @@ module.exports = async (req, res) => {
         });
       }
 
-      const response = await ffz("/products/all");
-      const categories = response.data?.categories || [];
+      
+const response = await ffz("/products/all");
 
-      const supplierProducts = categories.flatMap(
-        (category) =>
-          (category.products || []).map((product) => ({
-            ...product,
-            cat: category.name
-          }))
-      );
+const categories =
+  response.data?.categories ||
+  response.categories ||
+  [];
 
-      const supplierProduct = supplierProducts.find(
-        (product) =>
-          String(product.sku).toLowerCase() ===
-          String(body.supplier_sku).toLowerCase()
-      );
+const supplierProducts = categories.flatMap(
+  (entry) => {
+    const categoryInfo = entry.category || entry;
 
+    const items = Array.isArray(entry.items)
+      ? entry.items
+      : Array.isArray(entry.products)
+        ? entry.products
+        : [];
+
+    return items.map((product) => ({
+      ...product,
+      cat:
+        categoryInfo.name ||
+        entry.name ||
+        entry.category_name ||
+        null
+    }));
+  }
+);
+
+const supplierProduct = supplierProducts.find(
+  (product) =>
+    String(
+      product.sku ??
+      product.product_sku ??
+      product.code ??
+      ""
+    ).toLowerCase() ===
+    String(body.supplier_sku).toLowerCase()
+);
       if (!supplierProduct) {
         return send(res, 404, {
           success: false,
