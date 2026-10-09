@@ -1,76 +1,466 @@
-<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Itemku × FFZ Bridge</title><style>
-:root{--bg:#090e17;--panel:#111a28;--line:#243247;--text:#eef4ff;--muted:#93a4ba;--blue:#4389ff;--green:#20c997}*{box-sizing:border-box}body{margin:0;background:radial-gradient(900px 450px at 5% 0%,#13294a,transparent 60%),var(--bg);color:var(--text);font:14px/1.5 system-ui,Segoe UI,Arial}.layout{display:grid;grid-template-columns:230px 1fr;min-height:100vh}.side{background:#0b121d;border-right:1px solid var(--line);padding:22px 14px}.brand{font-weight:850;font-size:18px;margin:4px 10px}.sub{color:var(--muted);font-size:11px;margin:0 10px 22px}.nav{display:grid;gap:6px}.nav button{text-align:left;background:transparent;border:1px solid transparent;color:#aebbd0;padding:11px;border-radius:9px}.nav button.active,.nav button:hover{background:#14243a;border-color:#294a76;color:white}main{padding:28px;max-width:1450px;width:100%;margin:auto}.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:22px}.eyebrow{color:#72a8ff;font-size:11px;letter-spacing:1.4px;font-weight:800}.top h1{margin:4px 0;font-size:25px}.muted,.top p{color:var(--muted)}.pill,.tag{border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:11px;color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:linear-gradient(145deg,#111a28,#0e1622);border:1px solid var(--line);border-radius:15px;padding:17px;margin-bottom:15px}.metric-label{color:var(--muted);font-size:12px}.metric{font-size:25px;font-weight:850;margin-top:7px}.section{display:none}.section.active{display:block}.section h2{font-size:17px;margin:0 0 4px}.section p{color:var(--muted)}button{cursor:pointer;border:1px solid #315b94;background:#1d4f91;color:white;border-radius:8px;padding:10px 13px;font-weight:750}button.secondary{background:#141f2e;border-color:var(--line)}button.green{background:#087f61;border-color:#109a76}.actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.alert{padding:11px 13px;border:1px solid var(--line);background:#101b2a;border-radius:9px;color:#aebed2;margin:12px 0}.alert.error{border-color:#65313b;color:#ffb0b9}.alert.good{border-color:#17644e;color:#8ef0cf}.field{margin-bottom:12px}label{display:block;color:#9eafc4;font-size:12px;margin-bottom:5px}select,input{width:100%;background:#0a111b;border:1px solid #2a3a50;border-radius:8px;color:var(--text);padding:10px}.form{display:grid;grid-template-columns:1.2fr 1.3fr auto;gap:10px;align-items:end}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}table{width:100%;border-collapse:collapse;min-width:650px}th,td{padding:11px;border-bottom:1px solid #202e41;text-align:left;font-size:12px}th{background:#101b2b;color:#9eb1c9}tr:last-child td{border:0}.status{display:inline-block;border-radius:999px;padding:3px 7px;background:#202e41;font-size:11px}.ok{background:#0e382f;color:#7af0cd}.warn{background:#40351b;color:#ffdd80}.bad{background:#40232b;color:#ff9aa6}.hidden{display:none}.foot{font-size:11px;color:#61748e;margin-top:20px}@media(max-width:900px){.layout{grid-template-columns:1fr}.side{border:0;border-bottom:1px solid var(--line);padding:10px}.sub{display:none}.nav{display:flex;overflow:auto}.nav button{white-space:nowrap}main{padding:15px}.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:600px){.form{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}.metric{font-size:21px}}
-</style></head><body><div class="layout"><aside class="side"><div class="brand">⚡ Itemku × FFZ</div><div class="sub">AUTOMATION BRIDGE · V1.0</div><nav class="nav"><button class="active" data-p="dashboard">▦ Dashboard</button><button data-p="products">▤ Sinkron Produk</button><button data-p="mapping">⇄ Mapping SKU</button><button data-p="orders">⇢ Pesanan</button><button data-p="logs">≡ Log Sistem</button><button data-p="settings">⚙ Konfigurasi</button></nav></aside><main><div class="top"><div><div class="eyebrow">RESELLER AUTOMATION</div><h1 id="title">Dashboard Integrasi</h1><p id="desc">Hubungkan katalog Itemku dengan supplier FFZ Store.</p></div><div class="pill" id="conn">● Memeriksa API</div></div><div id="msg"></div>
-<section id="dashboard" class="section active"><div class="grid"><div class="card"><div class="metric-label">Mapping aktif / total</div><div class="metric" id="maps">—</div></div><div class="card"><div class="metric-label">Total antrean</div><div class="metric" id="jobs">—</div></div><div class="card"><div class="metric-label">Saldo FFZ</div><div class="metric" id="balance">—</div></div><div class="card"><div class="metric-label">Koneksi</div><div class="metric" id="state">—</div></div></div><div class="card"><h2>Mulai cepat</h2><p>Sinkronkan katalog, mapping SKU, lalu uji produk sebelum mengaktifkan order otomatis.</p><div class="actions"><button onclick="syncIK()">Sinkron Itemku</button><button class="secondary" onclick="loadFFZ()">Ambil katalog FFZ</button><button class="secondary" onclick="refresh()">Periksa koneksi</button><button class="secondary" onclick="poll()">Jalankan antrean</button></div><div id="quick" class="muted">Belum ada aktivitas.</div><div class="alert">FFZ Standard API tetap mensyaratkan IP whitelist. Jika IP Vercel ditolak, gunakan backend dengan IP keluar statis. Pesanan supplier gagal tidak otomatis direfund di Itemku.</div></div></section>
-<section id="products" class="section"><div class="card"><h2>Sinkronisasi katalog</h2><p>Produk Itemku disimpan di database. Katalog FFZ diambil langsung dari supplier.</p><div class="actions"><button onclick="syncIK()">Sync Itemku ke database</button><button class="secondary" onclick="loadIK()">Tampilkan produk Itemku</button><button class="secondary" onclick="loadFFZ()">Tampilkan produk FFZ</button></div><div id="pinfo" class="muted">Pilih aksi untuk memuat katalog.</div><div id="pt"></div></div></section>
-<section id="mapping" class="section"><div class="card"><h2>Mapping Itemku → FFZ</h2><p>Mapping baru nonaktif sampai diverifikasi. Cocokkan game, nominal, dan SKU secara tepat.</p><div class="form"><div class="field"><label>Produk Itemku</label><select id="iksel"></select></div><div class="field"><label>Produk FFZ</label><select id="ffsel"></select></div><button class="green" onclick="saveMap()">Simpan mapping</button></div><div class="alert">Setelah diverifikasi, aktifkan mapping di PostgreSQL: <code>UPDATE product_mappings SET enabled=TRUE WHERE itemku_product_id=ID;</code></div><div id="mt"></div></div></section>
-<section id="orders" class="section"><div class="card"><h2>Riwayat pesanan</h2><p>Order callback Itemku dan status supplier FFZ.</p><div class="actions"><button onclick="loadOrders()">Muat ulang</button><button class="secondary" onclick="poll()">Polling supplier</button></div><div id="ot"></div></div></section>
-<section id="logs" class="section"><div class="card"><h2>Log sistem</h2><div class="actions"><button onclick="loadLogs()">Muat ulang</button></div><div id="lt"></div></div></section>
-<section id="settings" class="section"><div class="card"><h2>Environment Variables Vercel</h2><p>Tambahkan di Project → Settings → Environment Variables. Jangan letakkan rahasia di GitHub.</p><div class="alert"><b>FFZ_API_KEY</b> · <b>ITEMKU_API_KEY</b> · <b>ITEMKU_SECRET_KEY</b> · <b>DATABASE_URL</b> · <b>APP_URL</b> · <b>APP_SECRET</b> · <b>CRON_SECRET</b> (opsional) · <b>ITEMKU_SHOP_ID</b> (opsional)</div><p>Callback Itemku: <code id="cb"></code></p><button onclick="copyCB()">Salin callback URL</button><p class="muted">Gunakan TXT record verifikasi Itemku sesuai nilai persis yang diberikan Itemku. Uji kredensial JWT dengan endpoint aktif sebelum transaksi live.</p></div></section><div class="foot">Vercel Functions + PostgreSQL · Review mapping sebelum live.</div></main></div>
+
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Itemku × FFZ Bridge</title>
+<style>
+:root{--bg:#090e17;--panel:#111a28;--line:#243247;--text:#eef4ff;--muted:#93a4ba;--blue:#4389ff;--green:#20c997}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(900px 450px at 5% 0%,#13294a,transparent 60%),var(--bg);color:var(--text);font:14px/1.5 system-ui,Segoe UI,Arial}
+.layout{display:grid;grid-template-columns:230px 1fr;min-height:100vh}
+.side{background:#0b121d;border-right:1px solid var(--line);padding:22px 14px}
+.brand{font-weight:850;font-size:18px;margin:4px 10px}
+.sub{color:var(--muted);font-size:11px;margin:0 10px 22px}
+.nav{display:grid;gap:6px}
+.nav button{text-align:left;background:transparent;border:1px solid transparent;color:#aebbd0;padding:11px;border-radius:9px}
+.nav button.active,.nav button:hover{background:#14243a;border-color:#294a76;color:white}
+main{padding:28px;max-width:1450px;width:100%;margin:auto}
+.top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:22px}
+.eyebrow{color:#72a8ff;font-size:11px;letter-spacing:1.4px;font-weight:800}
+.top h1{margin:4px 0;font-size:25px}
+.muted,.top p{color:var(--muted)}
+.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:11px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:linear-gradient(145deg,#111a28,#0e1622);border:1px solid var(--line);border-radius:15px;padding:17px;margin-bottom:15px}
+.metric-label{color:var(--muted);font-size:12px}
+.metric{font-size:25px;font-weight:850;margin-top:7px}
+.section{display:none}
+.section.active{display:block}
+.section h2{font-size:17px;margin:0 0 4px}
+.section p{color:var(--muted)}
+button{cursor:pointer;border:1px solid #315b94;background:#1d4f91;color:white;border-radius:8px;padding:10px 13px;font-weight:750}
+button.secondary{background:#141f2e;border-color:var(--line)}
+button.green{background:#087f61;border-color:#109a76}
+button:disabled{opacity:.5;cursor:wait}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.alert{padding:11px 13px;border:1px solid var(--line);background:#101b2a;border-radius:9px;color:#aebed2;margin:12px 0}
+.alert.error{border-color:#65313b;color:#ffb0b9}
+.alert.good{border-color:#17644e;color:#8ef0cf}
+.field{margin-bottom:12px}
+label{display:block;color:#9eafc4;font-size:12px;margin-bottom:5px}
+select,input{width:100%;background:#0a111b;border:1px solid #2a3a50;border-radius:8px;color:var(--text);padding:10px}
+.form{display:grid;grid-template-columns:1.2fr 1.3fr auto;gap:10px;align-items:end}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:650px}
+th,td{padding:11px;border-bottom:1px solid #202e41;text-align:left;font-size:12px}
+th{background:#101b2b;color:#9eb1c9}
+tr:last-child td{border:0}
+.status{display:inline-block;border-radius:999px;padding:3px 7px;background:#202e41;font-size:11px}
+.ok{background:#0e382f;color:#7af0cd}
+.warn{background:#40351b;color:#ffdd80}
+.bad{background:#40232b;color:#ff9aa6}
+.foot{font-size:11px;color:#61748e;margin-top:20px}
+@media(max-width:900px){
+.layout{grid-template-columns:1fr}
+.side{border:0;border-bottom:1px solid var(--line);padding:10px}
+.sub{display:none}
+.nav{display:flex;overflow:auto}
+.nav button{white-space:nowrap}
+main{padding:15px}
+.grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:600px){
+.form{grid-template-columns:1fr}
+.top{align-items:flex-start;flex-direction:column}
+.metric{font-size:21px}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="side">
+  <div class="brand">⚡ Itemku × FFZ</div>
+  <div class="sub">AUTOMATION BRIDGE · V1.1</div>
+  <nav class="nav">
+    <button class="active" data-p="dashboard">Dashboard</button>
+    <button data-p="itemku">Produk Itemku</button>
+    <button data-p="ffz">Produk FFZ</button>
+    <button data-p="mapping">Mapping SKU</button>
+    <button data-p="orders">Pesanan</button>
+    <button data-p="logs">Log Sistem</button>
+    <button data-p="settings">Konfigurasi</button>
+  </nav>
+</aside>
+<main>
+<div class="top">
+  <div>
+    <div class="eyebrow">RESELLER AUTOMATION</div>
+    <h1 id="title">Dashboard Integrasi</h1>
+    <p id="desc">Ringkasan koneksi dan antrean otomatis.</p>
+  </div>
+  <div class="pill" id="conn">Memeriksa API</div>
+</div>
+<div id="msg"></div>
+
+<section id="dashboard" class="section active">
+  <div class="grid">
+    <div class="card"><div class="metric-label">Mapping aktif / total</div><div class="metric" id="maps">—</div></div>
+    <div class="card"><div class="metric-label">Total antrean</div><div class="metric" id="jobs">—</div></div>
+    <div class="card"><div class="metric-label">Saldo FFZ</div><div class="metric" id="balance">—</div></div>
+    <div class="card"><div class="metric-label">Koneksi</div><div class="metric" id="state">—</div></div>
+  </div>
+  <div class="card">
+    <h2>Mulai cepat</h2>
+    <p>Kelola katalog secara terpisah, kemudian hubungkan SKU secara manual.</p>
+    <div class="actions">
+      <button onclick="loadIK()">Muat produk Itemku</button>
+      <button class="secondary" onclick="loadFFZ()">Muat produk FFZ</button>
+      <button class="secondary" onclick="refresh()">Periksa koneksi</button>
+    </div>
+    <div id="quick" class="muted">Belum ada aktivitas.</div>
+    <div class="alert">Mapping baru disimpan nonaktif. Verifikasi SKU sebelum mengaktifkan pemrosesan pesanan.</div>
+  </div>
+</section>
+
+<section id="itemku" class="section">
+  <div class="card">
+    <h2>Produk Itemku</h2>
+    <p>Sinkronkan katalog Itemku ke database atau muat produk yang sudah tersimpan.</p>
+    <div class="actions">
+      <button onclick="syncIK()">Sinkronkan Itemku ke database</button>
+      <button class="secondary" onclick="loadIK()">Muat produk tersimpan</button>
+    </div>
+    <div id="ikinfo" class="muted">Belum dimuat.</div>
+    <div id="ikt"></div>
+  </div>
+</section>
+
+<section id="ffz" class="section">
+  <div class="card">
+    <h2>Produk FFZ</h2>
+    <p>Ambil katalog supplier secara terpisah. Ini tidak menyinkronkan Itemku.</p>
+    <div class="actions"><button onclick="loadFFZ()">Ambil / muat ulang katalog FFZ</button></div>
+    <div id="ffzinfo" class="muted">Belum dimuat.</div>
+    <div id="ffzt"></div>
+  </div>
+</section>
+
+<section id="mapping" class="section">
+  <div class="card">
+    <h2>Mapping Itemku → FFZ</h2>
+    <p>Pilih satu produk Itemku dan satu SKU FFZ secara manual. Harga tidak dipakai untuk menentukan kecocokan.</p>
+    <div id="mapinfo" class="alert">Memuat katalog untuk pilihan mapping…</div>
+    <div class="form">
+      <div class="field">
+        <label for="iksel">Produk Itemku</label>
+        <select id="iksel"><option value="">Memuat produk Itemku…</option></select>
+      </div>
+      <div class="field">
+        <label for="ffsel">Produk FFZ</label>
+        <select id="ffsel"><option value="">Memuat produk FFZ…</option></select>
+      </div>
+      <button id="saveMapBtn" class="green" onclick="saveMap()">Simpan mapping</button>
+    </div>
+    <div class="actions">
+      <button class="secondary" onclick="loadMappingCatalogs(true)">Muat ulang pilihan produk</button>
+      <button class="secondary" onclick="loadMaps()">Refresh daftar mapping</button>
+    </div>
+    <div class="alert">Pastikan game, nominal, dan data pelanggan sesuai. Simpan mapping tidak otomatis mengaktifkan pemrosesan order.</div>
+    <div id="mt"></div>
+  </div>
+</section>
+
+<section id="orders" class="section">
+  <div class="card"><h2>Riwayat pesanan</h2><p>Pantau status order Itemku dan FFZ.</p><div class="actions"><button onclick="loadOrders()">Muat ulang</button></div><div id="ot"></div></div>
+</section>
+<section id="logs" class="section">
+  <div class="card"><h2>Log sistem</h2><div class="actions"><button onclick="loadLogs()">Muat ulang</button></div><div id="lt"></div></div>
+</section>
+<section id="settings" class="section">
+  <div class="card">
+    <h2>Konfigurasi</h2>
+    <p>Kelola environment variables di Vercel → Project → Settings → Environment Variables. Jangan letakkan secret di file frontend atau GitHub.</p>
+    <div class="alert"><b>DATABASE_URL</b> · <b>APP_URL</b> · <b>APP_SECRET</b> · <b>ITEMKU_API_KEY</b> · <b>ITEMKU_SECRET_KEY</b> · <b>FFZ_API_KEY</b></div>
+    <p>Callback Itemku: <code id="cb"></code></p>
+    <button onclick="copyCB()">Salin callback URL</button>
+  </div>
+</section>
+<div class="foot">Vercel Functions + PostgreSQL · Verifikasi mapping sebelum live.</div>
+</main>
+</div>
+
 <script>
-const $=id=>document.getElementById(id);let secret=sessionStorage.getItem('bridgeSecret')||'',ikp=[],ffp=[],maps=[];
-const names={dashboard:['Dashboard Integrasi','Ringkasan koneksi dan antrean otomatis.'],products:['Sinkron Produk','Ambil katalog Itemku dan FFZ Store.'],mapping:['Mapping SKU','Hubungkan produk marketplace ke produk supplier.'],orders:['Riwayat Pesanan','Pantau status order Itemku dan FFZ.'],logs:['Log Sistem','Audit aktivitas integrasi.'],settings:['Konfigurasi','Pengaturan deployment dan callback.']};
-document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-p]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));$(b.dataset.p).classList.add('active');$('title').textContent=names[b.dataset.p][0];$('desc').textContent=names[b.dataset.p][1];if(b.dataset.p==='mapping')loadMaps();if(b.dataset.p==='orders')loadOrders();if(b.dataset.p==='logs')loadLogs()});
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function rp(n){return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n||0))}
-function message(t,type=''){ $('msg').innerHTML=t?`<div class="alert ${type}">${esc(t)}</div>`:''}
-async function api(path,opt={}){let h={'Content-Type':'application/json',...(opt.headers||{})};if(secret)h.Authorization='Bearer '+secret;let r=await fetch('/api'+path,{...opt,headers:h}),d=await r.json().catch(()=>({message:'Respons bukan JSON'}));if(r.status===401&&!secret){let v=prompt('Masukkan APP_SECRET Vercel:');if(v){secret=v;sessionStorage.setItem('bridgeSecret',v);return api(path,opt)}}if(!r.ok||d.success===false)throw Error(d.message||'Request gagal');return d}
-async function refresh(){try{let h=await fetch('/api/health').then(r=>r.json());$('conn').textContent='● API tersedia';$('cb').textContent=location.origin+'/api/itemku-callback';let s=await api('/status');$('maps').textContent=s.mappings.enabled+' / '+s.mappings.total;$('jobs').textContent=s.jobs.reduce((n,x)=>n+x.total,0);let b=await api('/ffz/account'),d=b.data||b;$('balance').textContent=rp(d.balance);$('state').textContent=h.database_configured&&h.itemku_configured&&h.ffz_configured?'Siap diuji':'Konfigurasi kurang';message('Koneksi API diperiksa.','good')}catch(e){$('conn').textContent='● Perlu konfigurasi';$('state').textContent='Perlu cek';message(e.message,'error')}}
-async function syncIK(){try{$('quick').textContent='Sinkronisasi berjalan...';let r=await api('/sync/itemku',{method:'POST',body:'{}'});$('quick').textContent='Selesai: '+r.synced+' produk Itemku.';message('Katalog Itemku tersinkron.','good');await loadIK();await loadMaps()}catch(e){message(e.message,'error');$('quick').textContent=e.message}}
-async function loadIK(){try{let r=await api('/itemku/products');ikp=r.data||[];$('pinfo').textContent=ikp.length+' produk Itemku';renderProducts(ikp,true);fillSelects()}catch(e){message(e.message,'error')}}
-async function loadFFZ(){
-  try {
-    $('pinfo').textContent = 'Mengambil katalog FFZ...';
+const $ = id => document.getElementById(id);
+let secret = sessionStorage.getItem('bridgeSecret') || '';
+let ikp = [], ffp = [], maps = [];
+let ikLoaded = false, ffzLoaded = false;
+let ikPromise = null, ffzPromise = null;
 
-    const r = await api('/ffz/products');
-    const d = r.data || r;
-    const categories = Array.isArray(d.categories)
-      ? d.categories
-      : [];
+const names = {
+  dashboard:['Dashboard Integrasi','Ringkasan koneksi dan antrean otomatis.'],
+  itemku:['Produk Itemku','Sinkronisasi dan daftar produk Itemku.'],
+  ffz:['Produk FFZ','Katalog produk supplier FFZ.'],
+  mapping:['Mapping SKU','Hubungkan produk Itemku dengan SKU FFZ.'],
+  orders:['Riwayat Pesanan','Pantau status order Itemku dan FFZ.'],
+  logs:['Log Sistem','Audit aktivitas integrasi.'],
+  settings:['Konfigurasi','Pengaturan deployment dan callback.']
+};
 
-    ffp = categories.flatMap(category => {
-      const items = Array.isArray(category.items)
-        ? category.items
-        : Array.isArray(category.products)
-          ? category.products
-          : [];
+function esc(s){
+  return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function rp(n){
+  return new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n||0));
+}
+function message(t,type=''){
+  $('msg').innerHTML=t?`<div class="alert ${type}">${esc(t)}</div>`:'';
+}
 
-      return items.map(product => ({
-        ...product,
-        category_name:
-          category.name || category.code || 'FFZ'
-      }));
-    });
+async function api(path,opt={}){
+  const h={'Content-Type':'application/json',...(opt.headers||{})};
+  if(secret) h.Authorization='Bearer '+secret;
+  const r=await fetch('/api'+path,{...opt,headers:h});
+  const d=await r.json().catch(()=>({message:'Respons bukan JSON'}));
 
-    $('pinfo').textContent =
-      categories.length + ' kategori · ' +
-      ffp.length + ' produk FFZ';
-
-    renderProducts(ffp, false);
-    fillSelects();
-
-    if (ffp.length === 0) {
-      message(
-        'Kategori FFZ terbaca, tetapi produk kosong. Periksa struktur respons API.',
-        'error'
-      );
-      $('pt').innerHTML = '';
-      return;
+  if(r.status===401&&!secret){
+    const v=prompt('Masukkan APP_SECRET Vercel:');
+    if(v){
+      secret=v;
+      sessionStorage.setItem('bridgeSecret',v);
+      return api(path,opt);
     }
+  }
+  if(!r.ok||d.success===false) throw Error(d.message||`Request gagal (${r.status})`);
+  return d;
+}
 
-    message('Katalog FFZ berhasil ditampilkan.', 'good');
-  } catch (e) {
-    $('pinfo').textContent = 'Gagal memuat katalog FFZ.';
-    message(e.message, 'error');
+async function refresh(){
+  try{
+    const h=await fetch('/api/health').then(r=>r.json());
+    $('conn').textContent='API tersedia';
+    $('cb').textContent=location.origin+'/api/itemku-callback';
+    const s=await api('/status');
+    $('maps').textContent=(s.mappings?.enabled??0)+' / '+(s.mappings?.total??0);
+    $('jobs').textContent=(s.jobs||[]).reduce((n,x)=>n+Number(x.total||0),0);
+    try{
+      const b=await api('/ffz/account');
+      const d=b.data||b;
+      $('balance').textContent=rp(d.balance);
+    }catch{
+      $('balance').textContent='Tidak tersedia';
+    }
+    $('state').textContent=h.database_configured&&h.itemku_configured&&h.ffz_configured?'Siap diuji':'Konfigurasi kurang';
+  }catch(e){
+    $('conn').textContent='Perlu konfigurasi';
+    $('state').textContent='Perlu cek';
+    message(e.message,'error');
   }
 }
 
-function renderProducts(rows,isIK){$('pt').innerHTML='<div class="tablewrap"><table><thead><tr><th>Produk</th><th>Game/Kategori</th><th>ID/SKU</th><th>Harga</th><th>Stok</th></tr></thead><tbody>'+rows.slice(0,500).map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.game_name||p.category_name||p.category)}</td><td>${esc(isIK?p.id:p.sku)}</td><td>${rp(p.price??p.amount)}</td><td>${esc(p.stock??'—')}</td></tr>`).join('')+'</tbody></table></div>'}
-function fillSelects(){$('iksel').innerHTML=ikp.map(p=>`<option value="${p.id}">${esc(p.game_name)} — ${esc(p.name)} (#${p.id})</option>`).join('');$('ffsel').innerHTML=ffp.map(p=>`<option value="${esc(p.sku)}">${esc(p.category_name||p.category)} — ${esc(p.name)} (${esc(p.sku)}) · ${rp(p.price??p.amount)}</option>`).join('')}
-async function loadMaps(){try{let r=await api('/mappings');maps=r.data||[];$('mt').innerHTML='<div class="tablewrap"><table><thead><tr><th>Produk Itemku</th><th>Harga jual</th><th>SKU FFZ</th><th>Modal</th><th>Status</th></tr></thead><tbody>'+maps.map(m=>`<tr><td>${esc(m.itemku_product_name)} (#${m.itemku_product_id})</td><td>${rp(m.itemku_price)}</td><td>${esc(m.supplier_sku||'—')}</td><td>${rp(m.supplier_price)}</td><td><span class="status ${m.enabled?'ok':'warn'}">${m.enabled?'Aktif':'Nonaktif'}</span></td></tr>`).join('')+'</tbody></table></div>';fillSelects()}catch(e){message(e.message,'error')}}
-async function saveMap(){try{let id=$('iksel').value,sku=$('ffsel').value;if(!id||!sku)throw Error('Sinkronkan kedua katalog terlebih dahulu.');await api('/mappings',{method:'POST',body:JSON.stringify({itemku_product_id:Number(id),supplier_sku:sku})});message('Mapping disimpan dalam keadaan nonaktif. Verifikasi sebelum mengaktifkan.','good');await loadMaps()}catch(e){message(e.message,'error')}}
-async function loadOrders(){try{let r=await api('/orders');$('ot').innerHTML='<div class="tablewrap"><table><thead><tr><th>Order Itemku</th><th>Produk</th><th>User ID</th><th>Order FFZ</th><th>Status</th><th>Error</th></tr></thead><tbody>'+(r.data||[]).map(o=>`<tr><td>${esc(o.itemku_order_number||o.itemku_order_id)}</td><td>${esc(o.itemku_product_name)}</td><td>${esc(o.customer_user_id||'—')}</td><td>${esc(o.supplier_order_id||'Belum dibuat')}</td><td><span class="status ${o.state==='completed'?'ok':o.state.includes('failed')?'bad':'warn'}">${esc(o.state)}</span><br>${esc(o.supplier_status)}</td><td>${esc(o.last_error||'—')}</td></tr>`).join('')+'</tbody></table></div>'}catch(e){message(e.message,'error')}}
-async function poll(){try{let r=await api('/orders/poll',{method:'POST',body:'{}'});$('quick').textContent='Polling selesai: '+(r.results||[]).length+' pekerjaan.';await loadOrders();message('Polling selesai.','good')}catch(e){message(e.message,'error')}}
-async function loadLogs(){try{let r=await api('/logs');$('lt').innerHTML='<div class="tablewrap"><table><thead><tr><th>Waktu</th><th>Level</th><th>Event</th><th>Pesan</th></tr></thead><tbody>'+(r.data||[]).map(l=>`<tr><td>${new Date(l.created_at).toLocaleString('id-ID')}</td><td>${esc(l.level)}</td><td>${esc(l.event)}</td><td>${esc(l.message)}</td></tr>`).join('')+'</tbody></table></div>'}catch(e){message(e.message,'error')}}
-function copyCB(){navigator.clipboard.writeText(location.origin+'/api/itemku-callback').then(()=>message('Callback URL disalin.','good')).catch(()=>message(location.origin+'/api/itemku-callback'))}
+document.querySelectorAll('[data-p]').forEach(b=>{
+  b.onclick=async()=>{
+    document.querySelectorAll('[data-p]').forEach(x=>x.classList.toggle('active',x===b));
+    document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+    $(b.dataset.p).classList.add('active');
+    $('title').textContent=names[b.dataset.p][0];
+    $('desc').textContent=names[b.dataset.p][1];
+
+    if(b.dataset.p==='mapping'){
+      await loadMappingCatalogs();
+      await loadMaps();
+    }
+    if(b.dataset.p==='itemku'&&!ikLoaded) await loadIK();
+    if(b.dataset.p==='ffz'&&!ffzLoaded) await loadFFZ();
+    if(b.dataset.p==='orders') await loadOrders();
+    if(b.dataset.p==='logs') await loadLogs();
+  };
+});
+
+async function syncIK(){
+  try{
+    $('quick').textContent='Sinkronisasi Itemku berjalan…';
+    $('ikinfo').textContent='Sinkronisasi berjalan…';
+    const r=await api('/sync/itemku',{method:'POST',body:'{}'});
+    ikLoaded=false;
+    $('quick').textContent='Selesai: '+r.synced+' produk Itemku tersinkron.';
+    message('Katalog Itemku berhasil disinkronkan.','good');
+    await loadIK();
+    if($('mapping').classList.contains('active')) await loadMappingCatalogs();
+  }catch(e){
+    message(e.message,'error');
+    $('quick').textContent=e.message;
+    $('ikinfo').textContent=e.message;
+  }
+}
+
+async function loadIK(){
+  if(ikPromise) return ikPromise;
+  ikPromise=(async()=>{
+    try{
+      $('ikinfo').textContent='Memuat produk Itemku…';
+      const r=await api('/itemku/products');
+      ikp=Array.isArray(r.data)?r.data:[];
+      ikLoaded=true;
+      $('ikinfo').textContent=ikp.length+' produk Itemku';
+      $('ikt').innerHTML=productTable(ikp,true);
+      fillSelects();
+      return true;
+    }catch(e){
+      $('ikinfo').textContent='Gagal memuat produk Itemku.';
+      message(e.message,'error');
+      return false;
+    }finally{
+      ikPromise=null;
+    }
+  })();
+  return ikPromise;
+}
+
+async function loadFFZ(){
+  if(ffzPromise) return ffzPromise;
+  ffzPromise=(async()=>{
+    try{
+      $('ffzinfo').textContent='Mengambil katalog FFZ…';
+      const r=await api('/ffz/products');
+      const d=r.data||r;
+      const categories=Array.isArray(d.categories)?d.categories:[];
+      ffp=categories.flatMap(category=>{
+        const items=Array.isArray(category.items)?category.items:
+          Array.isArray(category.products)?category.products:[];
+        return items.map(p=>({
+          ...p,
+          category_name:category.name||category.code||'FFZ'
+        }));
+      });
+      ffzLoaded=true;
+      $('ffzinfo').textContent=categories.length+' kategori · '+ffp.length+' produk FFZ';
+      $('ffzt').innerHTML=productTable(ffp,false);
+      fillSelects();
+      if(!ffp.length){
+        message('Respons FFZ tidak berisi produk. Periksa struktur API.','error');
+        return false;
+      }
+      message('Katalog FFZ berhasil dimuat.','good');
+      return true;
+    }catch(e){
+      $('ffzinfo').textContent='Gagal memuat katalog FFZ.';
+      message(e.message,'error');
+      return false;
+    }finally{
+      ffzPromise=null;
+    }
+  })();
+  return ffzPromise;
+}
+
+function productTable(rows,isIK){
+  return '<div class="tablewrap"><table><thead><tr><th>Produk</th><th>Game/Kategori</th><th>ID/SKU</th><th>Harga</th><th>Stok</th></tr></thead><tbody>'+
+    rows.slice(0,500).map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.game_name||p.category_name||p.category)}</td><td>${esc(isIK?(p.id??p.product_id):p.sku)}</td><td>${rp(p.price??p.amount)}</td><td>${esc(p.stock??'—')}</td></tr>`).join('')+
+    '</tbody></table></div>';
+}
+
+function fillSelects(){
+  const iksel=$('iksel'),ffsel=$('ffsel');
+  const oldIK=iksel.value,oldFF=ffsel.value;
+
+  iksel.innerHTML=ikp.map(p=>{
+    const id=p.id??p.product_id;
+    return `<option value="${esc(id)}">${esc(p.game_name||'Itemku')} — ${esc(p.name)} (#${esc(id)})</option>`;
+  }).join('');
+
+  ffsel.innerHTML=ffp.map(p=>
+    `<option value="${esc(p.sku)}">${esc(p.category_name||p.category||'FFZ')} — ${esc(p.name)} (${esc(p.sku)}) · ${rp(p.price??p.amount)}</option>`
+  ).join('');
+
+  if(oldIK&&[...iksel.options].some(o=>o.value===oldIK)) iksel.value=oldIK;
+  if(oldFF&&[...ffsel.options].some(o=>o.value===oldFF)) ffsel.value=oldFF;
+
+  if(!ikp.length) iksel.innerHTML='<option value="">Tidak ada produk Itemku — sinkronkan dahulu</option>';
+  if(!ffp.length) ffsel.innerHTML='<option value="">Tidak ada produk FFZ — muat katalog dahulu</option>';
+}
+
+async function loadMappingCatalogs(force=false){
+  $('mapinfo').textContent='Memuat katalog Itemku dan FFZ untuk mapping…';
+
+  const results=await Promise.all([
+    (force||!ikLoaded)?loadIK():Promise.resolve(true),
+    (force||!ffzLoaded)?loadFFZ():Promise.resolve(true)
+  ]);
+
+  fillSelects();
+
+  if(results.every(Boolean)&&ikp.length&&ffp.length){
+    $('mapinfo').textContent=`Siap mapping: ${ikp.length} produk Itemku dan ${ffp.length} produk FFZ tersedia.`;
+  }else{
+    $('mapinfo').textContent='Katalog belum lengkap. Periksa pesan error atau sinkronkan katalog Itemku.';
+  }
+}
+
+async function loadMaps(){
+  try{
+    const r=await api('/mappings');
+    maps=Array.isArray(r.data)?r.data:[];
+    $('mt').innerHTML='<div class="tablewrap"><table><thead><tr><th>Produk Itemku</th><th>Harga jual</th><th>SKU FFZ</th><th>Modal</th><th>Status</th></tr></thead><tbody>'+
+      maps.map(m=>`<tr><td>${esc(m.itemku_product_name)} (#${esc(m.itemku_product_id)})</td><td>${rp(m.itemku_price)}</td><td>${esc(m.supplier_sku||'—')}</td><td>${rp(m.supplier_price)}</td><td><span class="status ${m.enabled?'ok':'warn'}">${m.enabled?'Aktif':'Nonaktif'}</span></td></tr>`).join('')+
+      '</tbody></table></div>';
+  }catch(e){
+    message(e.message,'error');
+  }
+}
+
+async function saveMap(){
+  const btn=$('saveMapBtn');
+  btn.disabled=true;
+  try{
+    if(!ikp.length||!ffp.length) await loadMappingCatalogs();
+    const id=$('iksel').value;
+    const sku=$('ffsel').value;
+    if(!id||!sku) throw Error('Pilih satu produk Itemku dan satu produk FFZ terlebih dahulu.');
+
+    const chosen=ffp.find(p=>String(p.sku)===String(sku));
+    if(!chosen) throw Error('SKU tidak ditemukan di katalog FFZ yang dimuat. Muat ulang katalog FFZ.');
+
+    await api('/mappings',{
+      method:'POST',
+      body:JSON.stringify({
+        itemku_product_id:Number(id),
+        supplier_sku:sku
+      })
+    });
+
+    message('Mapping berhasil disimpan dan tetap nonaktif.','good');
+    await loadMaps();
+  }catch(e){
+    message(e.message,'error');
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+async function loadOrders(){
+  try{
+    const r=await api('/orders');
+    const rows=Array.isArray(r.data)?r.data:[];
+    $('ot').innerHTML='<div class="tablewrap"><table><thead><tr><th>Order Itemku</th><th>Produk</th><th>User ID</th><th>Order FFZ</th><th>Status</th><th>Error</th></tr></thead><tbody>'+
+      rows.map(o=>`<tr><td>${esc(o.itemku_order_number||o.itemku_order_id)}</td><td>${esc(o.itemku_product_name)}</td><td>${esc(o.customer_user_id||'—')}</td><td>${esc(o.supplier_order_id||'Belum dibuat')}</td><td><span class="status ${o.state==='completed'?'ok':String(o.state||'').includes('failed')?'bad':'warn'}">${esc(o.state)}</span><br>${esc(o.supplier_status)}</td><td>${esc(o.last_error||'—')}</td></tr>`).join('')+
+      '</tbody></table></div>';
+  }catch(e){
+    message(e.message,'error');
+  }
+}
+
+async function loadLogs(){
+  try{
+    const r=await api('/logs');
+    const rows=Array.isArray(r.data)?r.data:[];
+    $('lt').innerHTML='<div class="tablewrap"><table><thead><tr><th>Waktu</th><th>Level</th><th>Event</th><th>Pesan</th></tr></thead><tbody>'+
+      rows.map(l=>`<tr><td>${new Date(l.created_at).toLocaleString('id-ID')}</td><td>${esc(l.level)}</td><td>${esc(l.event)}</td><td>${esc(l.message)}</td></tr>`).join('')+
+      '</tbody></table></div>';
+  }catch(e){
+    message(e.message,'error');
+  }
+}
+
+function copyCB(){
+  const url=location.origin+'/api/itemku-callback';
+  navigator.clipboard.writeText(url)
+    .then(()=>message('Callback URL disalin.','good'))
+    .catch(()=>message(url));
+}
+
 refresh();
-</script></body></html>
+</script>
+</body>
+</html>
