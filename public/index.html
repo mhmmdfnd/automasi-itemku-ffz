@@ -455,60 +455,164 @@ function renderFFZ() {
   });
 }
 
-function fillSelects() {
-  const gameSelect=$('gameFilter');
-  const oldGame=gameSelect.value;
-  const gameNames=[...new Set(ikp.map(itemkuGame).filter(g=>g&&g!=='Game tidak diketahui'))].sort((a,b)=>a.localeCompare(b));
-  gameSelect.replaceChildren();
-  const allGame=document.createElement('option');
-  allGame.value='';allGame.textContent='Semua game';
-  gameSelect.appendChild(allGame);
-  gameNames.forEach(game=>{
-    const option=document.createElement('option');
-    option.value=game;option.textContent=game;
-    gameSelect.appendChild(option);
-  });
-  if([...gameSelect.options].some(o=>o.value===oldGame)) gameSelect.value=oldGame;
+function getProductAmount(product) {
+  const name = String(
+    product.name || product.title || product.product_name ||
+    product.productName || product.sku || product.code || ""
+  );
 
-  const a=$('itemkuSelect'),b=$('ffzSelect');
-  const oldA=a.value,oldB=b.value;
-  const selectedGame=gameSelect.value;
+  // Abaikan kode produk di awal, misalnya (0966) atau [12345].
+  const cleaned = name.replace(/^\s*[\[(]\s*\d+\s*[\])]\s*/, "");
 
-  a.replaceChildren();
-  const firstA=document.createElement('option');
-  firstA.value='';
-  firstA.textContent=ikLoaded?'Pilih produk Itemku Top Up...':'Katalog Itemku belum dimuat';
-  a.appendChild(firstA);
+  // Prioritaskan angka yang diikuti satuan nominal.
+  const unitMatch = cleaned.match(
+    /(\d+(?:[.,]\d+)?)\s*(dm|diamond(?:s)?|diamonds?|uc|uc[s]?|cp|coin(?:s)?|point(?:s)?|voucher|ml|k|rb|ribu|juta)\b/i
+  );
 
-  ikp.filter(p=>!selectedGame||itemkuGame(p)===selectedGame).forEach(p=>{
-    const id=itemkuId(p);
-    if(id===''||id==null)return;
-    const option=document.createElement('option');
-    option.value=String(id);
-    option.textContent=`${itemkuGame(p)} | ${itemkuName(p)} [ID ${id}]`;
-    a.appendChild(option);
-  });
+  if (unitMatch) return Number(unitMatch[1].replace(",", "."));
 
-  b.replaceChildren();
-  const firstB=document.createElement('option');
-  firstB.value='';
-  firstB.textContent=ffLoaded?'Pilih produk FFZ / SKU...':'Katalog FFZ belum dimuat';
-  b.appendChild(firstB);
-
-  ffp.forEach(p=>{
-    const sku=ffzSku(p);
-    if(!sku)return;
-    const option=document.createElement('option');
-    option.value=String(sku);
-    option.textContent=`${ffzGame(p)} | ${ffzName(p)} [${sku}]`;
-    b.appendChild(option);
-  });
-
-  if([...a.options].some(o=>o.value===oldA))a.value=oldA;
-  if([...b.options].some(o=>o.value===oldB))b.value=oldB;
-  updateSelectedInfo();
+  // Fallback jika produk tidak memakai satuan yang dikenali.
+  const numberMatch = cleaned.match(/\d+(?:[.,]\d+)?/);
+  return numberMatch ? Number(numberMatch[0].replace(",", ".")) : Number.MAX_SAFE_INTEGER;
 }
 
+function compareProductAmount(a, b, nameGetter) {
+  const amountA = getProductAmount({name: nameGetter(a)});
+  const amountB = getProductAmount({name: nameGetter(b)});
+
+  if (amountA !== amountB) return amountA - amountB;
+
+  return nameGetter(a).localeCompare(nameGetter(b), "id", {
+    numeric: true,
+    sensitivity: "base"
+  });
+}
+
+function groupProductsByGame(products, gameGetter, nameGetter) {
+  const groups = new Map();
+
+  products.forEach(product => {
+    const game = String(gameGetter(product) || "Game tidak diketahui").trim();
+    if (!groups.has(game)) groups.set(game, []);
+    groups.get(game).push(product);
+  });
+
+  return [...groups.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0], "id", {
+      numeric: true,
+      sensitivity: "base"
+    }))
+    .map(([game, items]) => ({
+      game,
+      items: items.sort((a, b) =>
+        compareProductAmount(a, b, nameGetter)
+      )
+    }));
+}
+function fillSelects() {
+  const gameSelect = $("gameFilter");
+  const oldGame = gameSelect.value;
+
+  const gameNames = [...new Set(
+    ikp.map(itemkuGame).filter(g => g && g !== "Game tidak diketahui")
+  )].sort((a, b) => a.localeCompare(b, "id"));
+
+  gameSelect.replaceChildren();
+
+  const allGame = document.createElement("option");
+  allGame.value = "";
+  allGame.textContent = "Semua game";
+  gameSelect.appendChild(allGame);
+
+  gameNames.forEach(game => {
+    const option = document.createElement("option");
+    option.value = game;
+    option.textContent = game;
+    gameSelect.appendChild(option);
+  });
+
+  if ([...gameSelect.options].some(o => o.value === oldGame)) {
+    gameSelect.value = oldGame;
+  }
+
+  const itemkuSelect = $("itemkuSelect");
+  const ffzSelect = $("ffzSelect");
+  const oldItemku = itemkuSelect.value;
+  const oldFfz = ffzSelect.value;
+  const selectedGame = gameSelect.value;
+
+  itemkuSelect.replaceChildren();
+
+  const itemkuPlaceholder = document.createElement("option");
+  itemkuPlaceholder.value = "";
+  itemkuPlaceholder.textContent = ikLoaded
+    ? "Pilih produk Itemku Top Up..."
+    : "Katalog Itemku belum dimuat";
+  itemkuSelect.appendChild(itemkuPlaceholder);
+
+  const filteredItemku = ikp.filter(p =>
+    !selectedGame || itemkuGame(p) === selectedGame
+  );
+
+  groupProductsByGame(
+    filteredItemku,
+    itemkuGame,
+    itemkuName
+  ).forEach(group => {
+    const optgroup = document.createElement("optgroup");
+    optgroup.label = group.game;
+
+    group.items.forEach(p => {
+      const id = itemkuId(p);
+      if (id === "" || id == null) return;
+
+      const option = document.createElement("option");
+      option.value = String(id);
+      option.textContent = itemkuName(p);
+      optgroup.appendChild(option);
+    });
+
+    if (optgroup.children.length) itemkuSelect.appendChild(optgroup);
+  });
+
+  ffzSelect.replaceChildren();
+
+  const ffzPlaceholder = document.createElement("option");
+  ffzPlaceholder.value = "";
+  ffzPlaceholder.textContent = ffLoaded
+    ? "Pilih produk FFZ / SKU..."
+    : "Katalog FFZ belum dimuat";
+  ffzSelect.appendChild(ffzPlaceholder);
+
+  groupProductsByGame(
+    ffp.filter(p => ffzSku(p)),
+    ffzGame,
+    ffzName
+  ).forEach(group => {
+    const optgroup = document.createElement("optgroup");
+    optgroup.label = group.game;
+
+    group.items.forEach(p => {
+      const sku = ffzSku(p);
+      const option = document.createElement("option");
+      option.value = String(sku);
+      option.textContent = `${ffzName(p)} [${sku}]`;
+      optgroup.appendChild(option);
+    });
+
+    if (optgroup.children.length) ffzSelect.appendChild(optgroup);
+  });
+
+  if ([...itemkuSelect.options].some(o => o.value === oldItemku)) {
+    itemkuSelect.value = oldItemku;
+  }
+
+  if ([...ffzSelect.options].some(o => o.value === oldFfz)) {
+    ffzSelect.value = oldFfz;
+  }
+
+  updateSelectedInfo();
+}
 function updateSelectedInfo() {
   const item=ikp.find(p=>String(itemkuId(p))===$('itemkuSelect').value);
   const supplier=ffp.find(p=>String(ffzSku(p))===$('ffzSelect').value);
