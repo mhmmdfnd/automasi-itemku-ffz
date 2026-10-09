@@ -374,7 +374,7 @@ async function queueOrder(order) {
   return result.rows[0];
 }
 
-async function worker() {
+async function workerUnlocked() {
   const result = await db().query(
     `SELECT j.*, m.supplier_sku
      FROM order_jobs j
@@ -537,6 +537,55 @@ async function worker() {
   }
 
   return output;
+}
+async function worker() {
+  const lockClient = await db().connect();
+  const lockId = "73928164";
+  let locked = false;
+
+  try {
+    const result = await lockClient.query(
+      "SELECT pg_try_advisory_lock($1::bigint) AS locked",
+      [lockId]
+    );
+
+    locked = result.rows[0].locked;
+
+    if (!locked) {
+      await log(
+        "info",
+        "worker_skipped",
+        "Worker lain sedang memproses antrean",
+        {}
+      );
+
+      return [];
+    }
+
+    return await workerUnlocked();
+
+  } finally {
+    let destroyClient = false;
+
+    try {
+      if (locked) {
+        const unlockResult = await lockClient.query(
+          "SELECT pg_advisory_unlock($1::bigint) AS unlocked",
+          [lockId]
+        );
+
+        if (unlockResult.rows[0]?.unlocked !== true) {
+          destroyClient = true;
+        }
+      }
+    } catch (error) {
+      destroyClient = true;
+    } finally {
+      lockClient.release(
+        destroyClient ? new Error("Gagal melepas advisory lock") : undefined
+      );
+    }
+  }
 }
 
 module.exports = async (req, res) => {
