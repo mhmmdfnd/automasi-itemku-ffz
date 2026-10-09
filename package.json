@@ -1,0 +1,1 @@
+{"name":"itemku-ffz-bridge","version":"1.0.0","private":true,"engines":{"node":">=20"},"dependencies":{"@vercel/node":"^3.2.29","pg":"^8.13.1"}}
